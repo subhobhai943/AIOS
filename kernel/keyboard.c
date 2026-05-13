@@ -7,6 +7,7 @@
 #include "include/keyboard.h"
 #include "include/vga.h"
 #include <stdint.h>
+#include "include/shell.h"
 
 /* ─── PORT I/O ─────────────────────────────────────────────── */
 static inline uint8_t inb(uint16_t port)
@@ -124,12 +125,7 @@ void keyboard_handle_irq(void)
     }
 
     /* ── Echo to VGA ─────────────────────── */
-    if (ch == '\b') {
-        vga_backspace();          /* defined in vga.c — erase last char */
-    } else if (ch) {
-        char s[2] = { (char)ch, '\0' };
-        vga_puts(s);
-    }
+    shell_input(ch);
 }
 
 /* ─── keyboard_get_event ─────────────────────────────────── */

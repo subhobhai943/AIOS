@@ -38,7 +38,6 @@ void pit_handler(void)
 {
     ticks++;
 
-    /* send EOI to PIC */
     outb(0x20, 0x20);   // ← FIXED (no raw asm)
 }
 

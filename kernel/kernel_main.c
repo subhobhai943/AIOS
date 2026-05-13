@@ -7,6 +7,8 @@
 #include "include/idt.h"
 #include "include/keyboard.h"
 #include "include/mouse.h"
+#include "include/pit.h"
+#include "include/shell.h"
 
 #include <stdint.h>
 
@@ -47,7 +49,14 @@ static void kbd_isr(interrupt_frame_t *frame)
 static void mouse_isr(interrupt_frame_t *frame)
 {
     (void)frame;
+    pit_handler();
     mouse_handle_irq();
+}
+
+static void pit_isr(interrupt_frame_t *frame)
+{
+    (void)frame;
+    pit_handler();
 }
 
 /* ------------------------------------------------------------ */
@@ -112,6 +121,8 @@ void kernel_main(uint32_t magic, uint32_t addr)
     idt_init();
 
     print_ok("after idt");
+    idt_register_handler(0x20, pit_isr);
+    pit_init(100);
 
     /* -------------------------------------------------------- */
     /* KEYBOARD */
@@ -139,6 +150,7 @@ void kernel_main(uint32_t magic, uint32_t addr)
     uint8_t mask1 = inb(PIC1_DATA);
     uint8_t mask2 = inb(PIC2_DATA);
 
+    mask1 &= ~(1 << 0);
     mask1 &= ~(1 << 1);
     mask1 &= ~(1 << 2);
     mask2 &= ~(1 << 4);
@@ -166,6 +178,7 @@ void kernel_main(uint32_t magic, uint32_t addr)
         VGA_COLOR_LIGHT_GREEN,
         VGA_COLOR_BLACK
     );
+    shell_init();
 
     vga_puts_color(
         "Type something...\n",
